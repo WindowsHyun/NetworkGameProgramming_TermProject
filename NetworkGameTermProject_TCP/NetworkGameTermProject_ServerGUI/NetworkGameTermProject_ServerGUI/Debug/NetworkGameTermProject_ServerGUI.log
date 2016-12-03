@@ -1,0 +1,10 @@
+﻿  main.cpp
+e:\★텍스트자료\onedrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\networkgametermproject_servergui\networkgametermproject_servergui\main.cpp(229): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _itoa. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdlib.h(1316): note: 'itoa' 선언을 참조하십시오.
+e:\★텍스트자료\onedrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\networkgametermproject_servergui\networkgametermproject_servergui\main.cpp(246): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _itoa. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdlib.h(1316): note: 'itoa' 선언을 참조하십시오.
+e:\★텍스트자료\onedrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\networkgametermproject_servergui\networkgametermproject_servergui\main.cpp(371): warning C4473: 'sprintf': 서식 문자열에 대한 인수가 충분하게 전달되지 않았습니다.
+  e:\★텍스트자료\onedrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\networkgametermproject_servergui\networkgametermproject_servergui\main.cpp(371): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 0개가 제공되었습니다.
+  e:\★텍스트자료\onedrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\networkgametermproject_servergui\networkgametermproject_servergui\main.cpp(371): note: 누락된 variadic 인수 1이(가) 서식 문자열 '%d'에 필요합니다.
+  NetworkGameTermProject_ServerGUI.vcxproj -> E:\★텍스트자료\OneDrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\NetworkGameTermProject_ServerGUI\Debug\NetworkGameTermProject_ServerGUI.exe
+  NetworkGameTermProject_ServerGUI.vcxproj -> E:\★텍스트자료\OneDrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\NetworkGameTermProject_ServerGUI\Debug\NetworkGameTermProject_ServerGUI.pdb (Full PDB)
