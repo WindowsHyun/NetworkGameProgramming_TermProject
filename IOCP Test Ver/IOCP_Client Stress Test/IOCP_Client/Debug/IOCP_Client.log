@@ -1,0 +1,11 @@
+﻿  소스.cpp
+c:\users\kwon6\desktop\iocp_client\iocp_client\소스.cpp(32): warning C4305: '초기화 중': 'int'에서 'bool'(으)로 잘립니다.
+c:\users\kwon6\desktop\iocp_client\iocp_client\소스.cpp(61): warning C4996: 'WSASocketA': Use WSASocketW() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  c:\program files (x86)\windows kits\8.1\include\um\winsock2.h(3457): note: 'WSASocketA' 선언을 참조하십시오.
+c:\users\kwon6\desktop\iocp_client\iocp_client\소스.cpp(67): warning C4996: 'inet_addr': Use inet_pton() or InetPton() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  c:\program files (x86)\windows kits\8.1\include\um\winsock2.h(1850): note: 'inet_addr' 선언을 참조하십시오.
+c:\users\kwon6\desktop\iocp_client\iocp_client\소스.cpp(49): warning C4101: 'event' :참조되지 않은 지역 변수입니다.
+c:\users\kwon6\desktop\iocp_client\iocp_client\소스.cpp(50): warning C4101: 'overlapped' :참조되지 않은 지역 변수입니다.
+c:\users\kwon6\desktop\iocp_client\iocp_client\소스.cpp(47): warning C4101: 'dataBuf' :참조되지 않은 지역 변수입니다.
+  IOCP_Client.vcxproj -> C:\Users\kwon6\Desktop\IOCP_Client\Debug\IOCP_Client.exe
+  IOCP_Client.vcxproj -> C:\Users\kwon6\Desktop\IOCP_Client\Debug\IOCP_Client.pdb (Full PDB)

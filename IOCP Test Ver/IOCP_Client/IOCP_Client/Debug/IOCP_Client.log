@@ -1,0 +1,8 @@
+﻿  소스.cpp
+e:\★텍스트자료\onedrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\iocp_test ver\iocp_client\iocp_client\소스.cpp(32): warning C4305: '초기화 중': 'int'에서 'bool'(으)로 잘립니다.
+e:\★텍스트자료\onedrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\iocp_test ver\iocp_client\iocp_client\소스.cpp(60): warning C4996: 'WSASocketA': Use WSASocketW() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  c:\program files (x86)\windows kits\8.1\include\um\winsock2.h(3457): note: 'WSASocketA' 선언을 참조하십시오.
+e:\★텍스트자료\onedrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\iocp_test ver\iocp_client\iocp_client\소스.cpp(66): warning C4996: 'inet_addr': Use inet_pton() or InetPton() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  c:\program files (x86)\windows kits\8.1\include\um\winsock2.h(1850): note: 'inet_addr' 선언을 참조하십시오.
+  IOCP_Client.vcxproj -> E:\★텍스트자료\OneDrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\IOCP_Test Ver\IOCP_Client\Debug\IOCP_Client.exe
+  IOCP_Client.vcxproj -> E:\★텍스트자료\OneDrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\IOCP_Test Ver\IOCP_Client\Debug\IOCP_Client.pdb (Full PDB)
