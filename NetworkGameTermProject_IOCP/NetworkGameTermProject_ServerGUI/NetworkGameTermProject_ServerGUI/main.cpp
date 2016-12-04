@@ -23,7 +23,7 @@ void DisplayText( HWND hDlg, char *fmt, ... );
 
 SOCKET sock; // 소켓
 HWND shareHwnd, hList, hTextBox;
-HWND hPlayer[7], hPlayerOff[7];
+HWND hPlayer[8], hPlayerOff[8];
 SYSTEM_INFO SystemInfo;
 
 Server_Player server_data;
@@ -269,6 +269,8 @@ unsigned int __stdcall CompletionThread( LPVOID pComPort ) {
 	LPPER_HANDLE_DATA PerHandleData;
 	LPPER_IO_DATA PerIoData;
 	DWORD flags;
+	int sendBytes = 0, player_hp, Attacked_Player;
+	bool player_live;
 
 	//WSASend( PerHandleData->hClntSock, &(PerIoData->wsaBuf), 1, NULL, 0, NULL, NULL );
 
@@ -304,21 +306,57 @@ unsigned int __stdcall CompletionThread( LPVOID pComPort ) {
 		if ( PerIoData->Incoming_data == Recv_Mode ) {
 			PerIoData->wsaBuf.buf[BytesTransferred] = '\0';
 
+			player_hp = server_data.player[PerHandleData->client_imei].hp;
+			player_live = server_data.player[PerHandleData->client_imei].live;
+
 			server_data.player[PerHandleData->client_imei] = (Player_Socket&)PerIoData->buffer;
-			server_data.player[PerHandleData->client_imei].live = true;
-			server_data.player[PerHandleData->client_imei].team = (bool)(PerHandleData->client_imei % 2);
-			//DisplayText( hList, "nickName : %s, live : %d", server_data.player[PerHandleData->client_imei].nickName, server_data.player[PerHandleData->client_imei].live );
-			//DisplayText( hList, "x : %f, y : %f, nickName : %s", server_data.player[PerHandleData->client_imei].x, server_data.player[PerHandleData->client_imei].y, server_data.player[PerHandleData->client_imei].nickName );
 
-
-			if ( init_client[PerHandleData->client_imei] == false ) {
-				// 처음 접속후 데이터를 받았다. 버튼을 플레이어 이름으로 변경하자.
-				sprintf( buf, "Player %d : %s [ Team : %d ]", PerHandleData->client_imei, server_data.player[PerHandleData->client_imei].nickName, PerHandleData->client_imei % 2 );
-				SendMessage( hPlayer[PerHandleData->client_imei], WM_SETTEXT, 0, (LPARAM)buf );
-				init_client[PerHandleData->client_imei] = true;
+			if ( server_data.player[PerHandleData->client_imei].AttackedPlayer >= 19930617 ) {
+				// 값이 정상적으로 안들어왔을경우 다시 recv_mode로 들어간다.
 			}
+			else {
 
-			PerIoData->Incoming_data = Send_Mode;
+				server_data.player[PerHandleData->client_imei].live = true;
+				server_data.player[PerHandleData->client_imei].team = (bool)(PerHandleData->client_imei % 2);
+				//DisplayText( hList, "nickName : %s, live : %d", server_data.player[PerHandleData->client_imei].nickName, server_data.player[PerHandleData->client_imei].live );
+				//DisplayText( hList, "x : %f, y : %f, nickName : %s", server_data.player[PerHandleData->client_imei].x, server_data.player[PerHandleData->client_imei].y, server_data.player[PerHandleData->client_imei].nickName );
+
+				if ( init_client[PerHandleData->client_imei] == false ) {
+					server_data.player[PerHandleData->client_imei].hp = 100;
+					server_data.player[PerHandleData->client_imei].live = true;
+				}
+				else {
+					server_data.player[PerHandleData->client_imei].hp = player_hp;
+					server_data.player[PerHandleData->client_imei].live = player_live;
+				}
+
+				if ( server_data.player[PerHandleData->client_imei].RespawnTime == Respawn_Complete ) {
+					server_data.player[PerHandleData->client_imei].hp = 100;
+					server_data.player[PerHandleData->client_imei].live = true;
+				}
+
+				if ( server_data.player[PerHandleData->client_imei].AttackedPlayer != Not_Attacked ) {
+					// 플레이어가 죽였을경우
+					Attacked_Player = server_data.player[PerHandleData->client_imei].AttackedPlayer;
+					server_data.player[Attacked_Player].hp -= 40;
+					if ( server_data.player[Attacked_Player].hp <= 0 ) {
+						server_data.player[Attacked_Player].hp = 0;
+						server_data.player[Attacked_Player].RespawnTime = 10;
+						server_data.player[Attacked_Player].live = false;
+					}
+				}
+
+
+
+				if ( init_client[PerHandleData->client_imei] == false ) {
+					// 처음 접속후 데이터를 받았다. 버튼을 플레이어 이름으로 변경하자.
+					sprintf( buf, "Player %d : %s [ Team : %d ]", PerHandleData->client_imei, server_data.player[PerHandleData->client_imei].nickName, PerHandleData->client_imei % 2 );
+					SendMessage( hPlayer[PerHandleData->client_imei], WM_SETTEXT, 0, (LPARAM)buf );
+					init_client[PerHandleData->client_imei] = true;
+				}
+
+				PerIoData->Incoming_data = Send_Mode;
+			}
 		}
 
 
@@ -327,7 +365,7 @@ unsigned int __stdcall CompletionThread( LPVOID pComPort ) {
 			PerIoData->wsaBuf.buf = (char*)&server_data;
 			PerIoData->Incoming_data = Recv_Mode;
 
-			WSASend( PerHandleData->hClntSock, &(PerIoData->wsaBuf), 1, NULL, 0, NULL, NULL );
+			WSASend( PerHandleData->hClntSock, &(PerIoData->wsaBuf), 1, (LPDWORD)&sendBytes, 0, NULL, NULL );
 			//DisplayText( hList, "%d 클라 서버 데이터를 보냈습니다..! [%d]", PerHandleData->client_imei, PerIoData->wsaBuf.len, PerIoData->wsaBuf.len );
 		}
 
@@ -360,6 +398,9 @@ void clrUser( int client_imei ) {
 	server_data.player[client_imei].x = -1000.0f;
 	server_data.player[client_imei].y = -1000.0f;
 	server_data.player[client_imei].z = -1000.0f;
+	server_data.player[client_imei].hp = 0;
+	server_data.player[client_imei].AttackedPlayer = Not_Attacked;
+	server_data.player[client_imei].RespawnTime = Not_Respwan;
 	server_data.player[client_imei].live = false;
 	server_data.player[client_imei].team = false;
 	server_data.player[client_imei].character_down_state = 0;

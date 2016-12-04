@@ -7,16 +7,22 @@
 // IOCP 관련 모드 설정
 #define Recv_Mode 0
 #define Send_Mode 1
+#define Not_Attacked 19930616
+#define Respawn_Complete 19940106
+#define Not_Respwan 1234
+#define No_Connected FALSE
 
 typedef struct Player_Socket {
 	// 전송을 위해 사용
 	float x = -1000, y = -1000, z = -1000;
 	float camxrotate = -1000, camyrotate = -1000;
+	int hp = 100;
+	int AttackedPlayer = Not_Attacked; // 공격 당한 플레이어 번호
+	int RespawnTime = Not_Respwan;
 	bool live = false;
 	bool team = false; // 팀을 1팀 2팀을 T/F로 나눠버림
 	char nickName[16];
 	int character_down_state;
-	bool ClientData = false;
 }Player_Socket;
 
 typedef struct Player {

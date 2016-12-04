@@ -1,5 +1,0 @@
-﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(392,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (ComputerGraphicsTermProject-WindowsHyun-MacWindows.vcxproj, ComputerGraphicsTermProject-WindowsHyun-PC.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  Win_Sock.cpp
-e:\★텍스트자료\onedrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\networkgametermproject_iocp\networkgametermproject\computergraphicstermproject\win_sock.cpp(101): warning C4800: 'int': 'true' 또는 'false'로 bool 값을 강제하고 있습니다(성능 경고).
-  ComputerGraphicsTermProject.vcxproj -> E:\★텍스트자료\OneDrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\NetworkGameTermProject_IOCP\NetworkGameTermProject\Debug\ComputerGraphicsTermProject.exe
-  ComputerGraphicsTermProject.vcxproj -> E:\★텍스트자료\OneDrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\NetworkGameTermProject_IOCP\NetworkGameTermProject\Debug\ComputerGraphicsTermProject.pdb (Full PDB)

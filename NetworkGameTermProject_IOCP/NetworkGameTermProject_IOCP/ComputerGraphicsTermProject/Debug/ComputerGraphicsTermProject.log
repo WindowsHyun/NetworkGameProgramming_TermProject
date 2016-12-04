@@ -1,0 +1,4 @@
+﻿  Win_Sock.cpp
+e:\★텍스트자료\카카오톡 받은 파일\networkgametermproject - 충돌작업중\computergraphicstermproject\win_sock.cpp(105): warning C4800: 'int': 'true' 또는 'false'로 bool 값을 강제하고 있습니다(성능 경고).
+  ComputerGraphicsTermProject.vcxproj -> E:\★텍스트자료\카카오톡 받은 파일\NetworkGameTermProject - 충돌작업중\Debug\ComputerGraphicsTermProject.exe
+  ComputerGraphicsTermProject.vcxproj -> E:\★텍스트자료\카카오톡 받은 파일\NetworkGameTermProject - 충돌작업중\Debug\ComputerGraphicsTermProject.pdb (Full PDB)

@@ -1,0 +1,20 @@
+﻿빌드 시작: 2015-12-03 오전 11:15:38
+     1>2 노드의 "C:\Users\WindowsHyun\Downloads\jsoncpp-src-0.5.0\makefiles\vs71\lib_json.vcxproj" 프로젝트(Build 대상)입니다.
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../include /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _LIB /D _MBCS /GF /Gm /EHsc /RTC1 /MDd /GS /Gy /fp:precise /Za /Zc:wchar_t /Zc:forScope- /GR /Fo"../../build/vs71/debug/lib_json\\" /Fd"../../build/vs71/debug/lib_json\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt ..\..\src\lib_json\json_reader.cpp ..\..\src\lib_json\json_value.cpp ..\..\src\lib_json\json_writer.cpp
+         json_writer.cpp
+         json_value.cpp
+         json_reader.cpp
+         코드를 생성하고 있습니다...
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppBuild.targets(1354,5): warning MSB8012: TargetPath(C:\Users\WindowsHyun\Downloads\jsoncpp-src-0.5.0\makefiles\vs71\../../build/vs71/debug/lib_json\lib_json.lib) does not match the Library's OutputFile property value (C:\Users\WindowsHyun\Downloads\jsoncpp-src-0.5.0\build\vs71\debug\lib_json\json_vc71_libmtd.lib). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Lib.OutputFile).
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppBuild.targets(1356,5): warning MSB8012: TargetName(lib_json) does not match the Library's OutputFile property value (json_vc71_libmtd). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Lib.OutputFile).
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\Lib.exe /OUT:"../../build/vs71/debug/lib_json\json_vc71_libmtd.lib" /NOLOGO ../../build/vs71/debug/lib_json\json_reader.obj
+         ../../build/vs71/debug/lib_json\json_value.obj
+         ../../build/vs71/debug/lib_json\json_writer.obj
+         lib_json.vcxproj -> C:\Users\WindowsHyun\Downloads\jsoncpp-src-0.5.0\makefiles\vs71\../../build/vs71/debug/lib_json\lib_json.lib
+     1>"C:\Users\WindowsHyun\Downloads\jsoncpp-src-0.5.0\makefiles\vs71\lib_json.vcxproj" 프로젝트를 빌드했습니다(Build 대상).
+
+빌드했습니다.
+
+경과 시간: 00:00:02.20

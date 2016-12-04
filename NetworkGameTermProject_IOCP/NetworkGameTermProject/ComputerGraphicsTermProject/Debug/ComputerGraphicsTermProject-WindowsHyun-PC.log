@@ -1,4 +1,0 @@
-﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(392,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (ComputerGraphicsTermProject-WindowsHyun-MacWindows.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  Win_Sock.cpp
-  ComputerGraphicsTermProject.vcxproj -> E:\★텍스트자료\OneDrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\NetworkGameTermProject\Debug\ComputerGraphicsTermProject.exe
-  ComputerGraphicsTermProject.vcxproj -> E:\★텍스트자료\OneDrive\2016년도 3학년 2학기 수업자료\네트워크 게임 프로그래밍\NetworkGameTermProject\Debug\ComputerGraphicsTermProject.pdb (Full PDB)
