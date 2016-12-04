@@ -52,6 +52,9 @@
 #define CHARACTER_WALK 1
 #define CHARACTER_CROUCH_JUMP 3
 
+//박스갯수
+#define BOX_COUNT 38
+
 // 먼저 벡터를 표현하는 구조체를 정의합니다. 
 typedef struct vector3 {
 	double x, y, z;
@@ -97,6 +100,7 @@ typedef struct Box
 	//opengl
 	int x, y, z;//박스위치
 	int size; //박스크기
+	int image;
 }Box;
 
 typedef struct Player_Animation
@@ -168,13 +172,19 @@ void WallCollision( Player_Socket *player_socket );
 //UI 그리기
 void drawHud( int w, int h, Player_Socket player ); // 윈도우 크기를 받아오게 한다.
 
+//무기그리기 + 총구화염
+void drawGun( Player_Socket *player_socket, bool &gunfire );
+
 //서버관련
 SOCKET init_sock();
 void iocp_Communication( SOCKET sock, Player_Socket &player, ClientData &cd, Server_Player &server_data );
 
 //맵 그리기
 //void DrawMap();
-void DrawMap( Box *box );
+//void DrawMap( Box *box );
+void DrawMap( );
+void DrawBox( Box* box );
+
 
 //애니메이션 동작
 void PlayAnimation( Player_Animation &Ani, const int character_down_state );
@@ -189,7 +199,9 @@ void drawBoxLeft( int, bool, GLuint );
 
 //바닥 그리기 관련
 void init_Map_Texture();
+void Mapping_Box( Box &box, int x, int y, int z , int img_num );
 static GLuint map_object[1];
+static GLuint stone_object[4];
 
 //캐릭터 그리기 관련
 static GLuint character_head_object[6];
@@ -220,7 +232,7 @@ void zombie_body_Texture( GLuint[] );
 void zombie_arm_Texture( GLuint[], GLuint[] );
 void zombie_leg_Texture( GLuint[], GLuint[] );
 
-void drawCharacter( Player_Socket *player_socket, Player_Animation *Ani );
+void drawCharacter( Player_Socket *player_socket, Player_Animation *Ani, bool &gunfire );
 void drawZombie( Player_Socket *player_socket, Player_Animation *Ani );
 
 

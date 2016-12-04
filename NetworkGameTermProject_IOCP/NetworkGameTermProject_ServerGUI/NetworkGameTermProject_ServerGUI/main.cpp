@@ -269,6 +269,7 @@ unsigned int __stdcall CompletionThread( LPVOID pComPort ) {
 	LPPER_HANDLE_DATA PerHandleData;
 	LPPER_IO_DATA PerIoData;
 	DWORD flags;
+	Player_Socket temp;
 	int sendBytes = 0, player_hp, Attacked_Player;
 	bool player_live;
 
@@ -309,12 +310,15 @@ unsigned int __stdcall CompletionThread( LPVOID pComPort ) {
 			player_hp = server_data.player[PerHandleData->client_imei].hp;
 			player_live = server_data.player[PerHandleData->client_imei].live;
 
-			server_data.player[PerHandleData->client_imei] = (Player_Socket&)PerIoData->buffer;
+			temp = (Player_Socket&)PerIoData->buffer;
 
-			if ( server_data.player[PerHandleData->client_imei].AttackedPlayer >= 19930617 ) {
+			if ( temp.AttackedPlayer >= 19930617 || temp.AttackedPlayer <= -5 ) {
 				// 값이 정상적으로 안들어왔을경우 다시 recv_mode로 들어간다.
+				DisplayText( hList, "%d 클라이언트 쓰레기값 출연..!", PerHandleData->client_imei );
+				PerIoData->Incoming_data = Send_Mode;
 			}
 			else {
+				server_data.player[PerHandleData->client_imei] = (Player_Socket&)PerIoData->buffer;
 
 				server_data.player[PerHandleData->client_imei].live = true;
 				server_data.player[PerHandleData->client_imei].team = (bool)(PerHandleData->client_imei % 2);
@@ -398,7 +402,7 @@ void clrUser( int client_imei ) {
 	server_data.player[client_imei].x = -1000.0f;
 	server_data.player[client_imei].y = -1000.0f;
 	server_data.player[client_imei].z = -1000.0f;
-	server_data.player[client_imei].hp = 0;
+	server_data.player[client_imei].hp = 100;
 	server_data.player[client_imei].AttackedPlayer = Not_Attacked;
 	server_data.player[client_imei].RespawnTime = Not_Respwan;
 	server_data.player[client_imei].live = false;

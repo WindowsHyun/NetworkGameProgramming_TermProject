@@ -25,6 +25,7 @@ void Keyboardup( unsigned char key, int x, int y );
 void Motion( int x, int y );
 void TimerFunction( int value );
 void reset_character(); // 사용자의 위치를 초기화 해준다.
+void SetBoxState();
 
 void Target( int x, int y );//카메라 시점관련 함수
 void Keyinput( int key );//키보드 동시입력을 위한 입력처리 함수
@@ -55,7 +56,7 @@ bool Keybuffer[256];//동시입력에 사용되는 버퍼
 bool GameStart = false;
 
 //장애물
-Box box[5];
+Box box[BOX_COUNT];
 //vector3 Cross3D;
 
 // IOCP 소켓 전송시 타이머 딜레이를 준다.
@@ -65,7 +66,8 @@ double dTime;
 
 //애니메이션 변수
 //float left_sholder_x, left_sholder_y, left_sholder_z, right_sholder_x, right_sholder_y, right_sholder_z, left_elbow_x, right_elbow_x;//팔회전
-
+bool gunfire = false, dummyfire = false;
+float flashtimer = 0;
 
 // 조명 설정
 /*
@@ -149,35 +151,8 @@ void main()
 	for ( int i = 0; i < 256; i++ )
 		Keybuffer[i] = false;
 
-	box[0].x = 0;
-	box[0].y = 0;
-	box[0].z = 0;
-	box[0].size = 100;
+	SetBoxState();
 
-	box[1].x = 1000;
-	box[1].y = 0;
-	box[1].z = 300;
-	box[1].size = 200;
-
-	box[2].x = -1000;
-	box[2].y = 0;
-	box[2].z = -1000;
-	box[2].size = 500;
-
-	box[3].x = 0;
-	box[3].y = 0;
-	box[3].z = -1000;
-	box[3].size = 300;
-
-	box[4].x = 700;
-	box[4].y = 0;
-	box[4].z = 2000;
-	box[4].size = 500;
-
-	//server_data.Players[1].x = -100;
-	//server_data.Players[1].y = 0;
-	//server_data.Players[1].z = -1500;
-	//server_data.Players[1].live = true;
 	//필요한 콜백 함수 설정
 
 	glutDisplayFunc( DrawScene ); //출력 함수의 지정
@@ -224,12 +199,16 @@ GLvoid DrawScene( GLvoid )
 		glEnable( GL_CULL_FACE );				// 후면 제거
 
 		//맵 그리기
-		for ( int i = 0; i < 5; i++ )
-			DrawMap( &box[i] );
+	/*	for ( int i = 0; i < BOX_COUNT; i++ )
+			&box[i]*/
+
+		DrawMap( );
+		DrawBox(box);
+
 
 		//플레이어 그리기
 		if ( player_socket.live )
-			drawCharacter( &player_socket, &player_client.Ani );
+			drawCharacter( &player_socket, &player_client.Ani, gunfire );
 
 		//다른 플레이어 그리기
 		for ( int i = 0; i < MAX_Client; i++ )
@@ -238,7 +217,7 @@ GLvoid DrawScene( GLvoid )
 			else
 			{
 				if ( client_data.team == server_data.Players[i].team )
-					drawCharacter( &server_data.Players[i], &Ani[i] );
+					drawCharacter( &server_data.Players[i], &Ani[i], dummyfire );
 				else
 					drawZombie( &server_data.Players[i], &Ani[i] );
 
@@ -270,7 +249,11 @@ GLvoid DrawScene( GLvoid )
 
 
 		//맵 그리기
-		DrawMap( &box[0] );
+	/*	for ( int i = 0; i < BOX_COUNT; i++ )
+			&box[i]*/
+
+			DrawMap( );
+			DrawBox( box );
 
 		//다른 플레이어 그리기
 		for ( int i = 0; i < MAX_Client; i++ )
@@ -279,7 +262,7 @@ GLvoid DrawScene( GLvoid )
 			else
 			{
 				if ( client_data.team == server_data.Players[i].team )
-					drawCharacter( &server_data.Players[i], &Ani[i] );
+					drawCharacter( &server_data.Players[i], &Ani[i], dummyfire );
 				else
 					drawZombie( &server_data.Players[i], &Ani[i] );
 			}
@@ -335,21 +318,23 @@ void Mouse( int button, int state, int x, int y )//마우스 클릭관련 체크
 	{
 		//Bullet(&box[0]);
 		BulletCollision( box );
+		gunfire = true;
 	}
 	if ( button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN )//우클릭
 	{
-		if ( FirstPersonView )
-		{//1인칭일경우 정조준
-			if ( player_client.Ani.sight ) {
-				player_client.Ani.sight = false;
-				//turn_Light = true;
-			}
-			else {
-				player_client.Ani.sight = true;
-				//turn_Light = true;
-			}
-		}
-		else {}
+		player_client.Ani.sight = false;
+		//if ( FirstPersonView )
+		//{//1인칭일경우 정조준
+		//	if ( player_client.Ani.sight ) {
+		//		player_client.Ani.sight = false;
+		//		//turn_Light = true;
+		//	}
+		//	else {
+		//		player_client.Ani.sight = true;
+		//		//turn_Light = true;
+		//	}
+		//}
+		//else {}
 	}
 }//end of Mouse
 
@@ -416,7 +401,8 @@ void Keyboard( unsigned char key, int x, int y )
 		Keybuffer[key] = false;
 		break;
 	case 't':
-		server_data.Players[1].live = true;
+		printf( "x : %f, y: %f\n", player_socket.camxrotate, player_socket.camyrotate );
+		//server_data.Players[1].live = true;
 		/*printf( "\n%d\n", player_socket.live );
 		for ( int i = 0; i < MAX_Client; i++ )
 			printf( "%d", server_data.Players[i].live );
@@ -490,6 +476,13 @@ void TimerFunction( int value )
 		fPTime = fCTime;
 		fCTime = GetTickCount();
 		fTime = fCTime - fPTime;
+
+		flashtimer += fTime;
+		if ( flashtimer > 100.0 )
+		{
+			gunfire = false;
+			flashtimer = 0;
+		}
 
 		if ( RotateCam )
 			glutWarpPointer( width / 2, height / 2 );//해상도에 따라 유동적으로 바뀌도록
@@ -654,11 +647,11 @@ void BulletCollision( Box box[] )
 	double BoxShortest = 10000.0;
 	double CharShortest = 10000.0;
 	int Cshort = -1, Bshort = -1;
-	for ( int i = 0; i < 5; i++ )//맵 장애물 충돌체크
+	for ( int i = 0; i < BOX_COUNT; i++ )//맵 장애물 충돌체크
 	{
 		if ( Bullet( &box[i] ) == 1.0 )
 		{
-			printf( "상자충돌!\n" );
+			//printf( "상자충돌!\n" );
 			Dist = sqrt( pow( player_socket.x - box[i].x, 2.0 ) + pow( player_socket.y - box[i].y, 2.0 ) + pow( player_socket.z - box[i].z, 2.0 ) );
 			if ( BoxShortest > Dist )
 			{
@@ -673,7 +666,7 @@ void BulletCollision( Box box[] )
 		{
 			if ( ((Bullet( &player_collision[i][0] ) == 1.0) || (Bullet( &player_collision[i][1] ) == 1.0)) || ((Bullet( &player_collision[i][2] ) == 1.0) || (Bullet( &player_collision[i][3] ) == 1.0)) )
 			{
-				printf( "플레이어 %d 충돌!\n", i );
+				//printf( "플레이어 %d 충돌!\n", i );
 				Dist = sqrt( pow( player_socket.x - server_data.Players[i].x, 2.0 ) + pow( player_socket.y - server_data.Players[i].y, 2.0 ) + pow( player_socket.z - server_data.Players[i].z, 2.0 ) );
 				if ( CharShortest > Dist )
 				{
@@ -685,7 +678,7 @@ void BulletCollision( Box box[] )
 	}
 	if ( CharShortest < BoxShortest )
 	{
-		printf( "플레이어 충돌!\n" );/////////////////////////////////////플레이어가 총알에 맞은게 확정일때//////////////////////////
+		//printf( "플레이어 충돌!\n" );/////////////////////////////////////플레이어가 총알에 맞은게 확정일때//////////////////////////
 		if ( player_socket.live == true ) {
 			server_data.Players[Cshort].live = false;
 			player_socket.AttackedPlayer = Cshort;
@@ -710,6 +703,8 @@ void reset_character() {
 		player_client.Viewx = -3800;
 		player_client.Viewy = 0;
 		player_client.Viewz = 0;
+		player_socket.camxrotate = -276.360107;
+		player_socket.camyrotate = -92.9999992;
 	}
 	else
 	{
@@ -719,6 +714,8 @@ void reset_character() {
 		player_client.Viewx = 3800;
 		player_client.Viewy = 0;
 		player_client.Viewz = 0;
+		player_socket.camxrotate = -96.400032;
+		player_socket.camyrotate = -89.919991;
 	}
 }
 
@@ -732,4 +729,84 @@ void WallCollision( Player_Socket *player_socket )
 		player_socket->z = -3950;
 	else if ( player_socket->z > 3950 )
 		player_socket->z = 3950;
+}
+
+void SetBoxState(){
+	for ( int i = 0; i < 25; i+=2 ) {
+		Mapping_Box( box[i], 3, 0, i, 0 ); // x, y, z, image
+	}
+	int j = 1;
+	for ( int i = 25; i < 38; ++i ) {
+		Mapping_Box( box[i], 23, 0, j, 0 ); // x, y, z, image
+		j+=2;
+	}
+
+	//------------------------------------------------------------------
+	// 중앙 박스
+	box[1].x = 0;
+	box[1].y = 0;
+	box[1].z = 0;
+	box[1].size = 600;
+	box[1].image = 1;
+
+	box[3].x = 0;
+	box[3].y = 0;
+	box[3].z = 2000;
+	box[3].size = 600;
+	box[3].image = 1;
+
+	box[5].x = 0;
+	box[5].y = 0;
+	box[5].z = -2000;
+	box[5].size = 600;
+	box[5].image = 1;
+	//------------------------------------------------------------------
+	box[7].x = -1600;
+	box[7].y = 0;
+	box[7].z = 900;
+	box[7].size = 400;
+	box[7].image = 2;
+
+	box[9].x = -1600;
+	box[9].y = 0;
+	box[9].z = 2900;
+	box[9].size = 400;
+	box[9].image = 2;
+
+	box[11].x = -1600;
+	box[11].y = 0;
+	box[11].z = -2900;
+	box[11].size = 400;
+	box[11].image = 2;
+
+	box[13].x = -1600;
+	box[13].y = 0;
+	box[13].z = -1000;
+	box[13].size = 400;
+	box[13].image = 2;
+	//------------------------------------------------------------------
+	box[15].x = 1600;
+	box[15].y = 0;
+	box[15].z = 900;
+	box[15].size = 400;
+	box[15].image = 2;
+
+	box[17].x = 1600;
+	box[17].y = 0;
+	box[17].z = 2900;
+	box[17].size = 400;
+	box[17].image = 2;
+
+	box[19].x = 1600;
+	box[19].y = 0;
+	box[19].z = -2900;
+	box[19].size = 400;
+	box[19].image = 2;
+
+	box[21].x = 1600;
+	box[21].y = 0;
+	box[21].z = -1000;
+	box[21].size = 400;
+	box[21].image = 2;
+	//------------------------------------------------------------------
 }
