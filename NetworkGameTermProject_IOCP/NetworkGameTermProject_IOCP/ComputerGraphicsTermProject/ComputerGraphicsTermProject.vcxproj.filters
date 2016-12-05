@@ -51,9 +51,6 @@
     <ClCompile Include="PlayAnimation.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="SetBoxInfo.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="CollisionBullet.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>

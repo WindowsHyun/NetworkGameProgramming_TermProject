@@ -7,6 +7,9 @@ void drawZombie(Player_Socket *player_socket, Player_Animation *Ani)
 	glTranslated(player_socket->x, player_socket->y + 140, player_socket->z);//
 	glRotatef(player_socket->camxrotate + 180, 0, 1, 0);
 
+	bool a = false;//더미데이터
+	drawGun(player_socket, a );//총그리기
+
 	glPushMatrix(); //Save 머리
 	glTranslated(0, 75, 0);
 	glRotatef(-(player_socket->camyrotate + 90) / 3, 1, 0, 0);

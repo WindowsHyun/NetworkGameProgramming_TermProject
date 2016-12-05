@@ -56,7 +56,6 @@ SOCKET init_sock() {
 }
 
 void iocp_Communication( SOCKET sock, Player_Socket &player, ClientData &cd, Server_Player &server_data ) {
-
 	if ( dataBuf.Incoming_data == Send_Mode ) {
 		dataBuf.wsabuf.len = sizeof( Player_Socket );
 		dataBuf.wsabuf.buf = (char*)&player;
@@ -103,6 +102,7 @@ void iocp_Communication( SOCKET sock, Player_Socket &player, ClientData &cd, Ser
 				if ( !strcmp( server_data.Players[i].nickName, nickName ) ) {
 					cd.client_imei = i;
 					cd.team = (bool)(i % 2);
+					player.team = (bool)(i % 2);
 					printf( "Client_imei : %d, Team : %d, nickName : %s\n", cd.client_imei, cd.team, nickName );
 					break;
 				}
@@ -112,7 +112,8 @@ void iocp_Communication( SOCKET sock, Player_Socket &player, ClientData &cd, Ser
 		// 서버에서 나의 정보를 플레이어에 넣어준다.
 		player.hp = server_data.Players[cd.client_imei].hp;
 		player.live = server_data.Players[cd.client_imei].live;
-		//player.RespawnTime = server_data.Players[cd.client_imei].RespawnTime;
+		player.kill = server_data.Players[cd.client_imei].kill;
+		player.death = server_data.Players[cd.client_imei].death;
 
 	}
 

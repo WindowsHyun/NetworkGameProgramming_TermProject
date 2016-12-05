@@ -35,6 +35,8 @@ void Keyinput( int key );//키보드 동시입력을 위한 입력처리 함수
 int Time = 10, Bullet_Time = 1;
 float fTime, fCTime, fPTime;
 bool err;
+int round_time = 60;//라운드 타이머
+bool tab = false;//라운드 표시창
 
 //해상도
 int width, height;
@@ -158,6 +160,8 @@ void main()
 	glutDisplayFunc( DrawScene ); //출력 함수의 지정
 	glutTimerFunc( Time, TimerFunction, 1 );//타이머 콜백 함수
 	glutTimerFunc( 1024, TimerFunction, 2 ); // 패킷 전송을 확인하기 위하여
+	glutTimerFunc( 1000, TimerFunction, 3 );
+
 
 	glutPassiveMotionFunc( Motion );//마우스모션
 	glutMouseFunc( Mouse );//마우스입력
@@ -198,13 +202,8 @@ GLvoid DrawScene( GLvoid )
 		glEnable( GL_DEPTH_TEST );			// 가려진 면 제거
 		glEnable( GL_CULL_FACE );				// 후면 제거
 
-		//맵 그리기
-	/*	for ( int i = 0; i < BOX_COUNT; i++ )
-			&box[i]*/
-
-		DrawMap( );
-		DrawBox(box);
-
+		DrawMap();
+		DrawBox( box );
 
 		//플레이어 그리기
 		if ( player_socket.live )
@@ -221,22 +220,23 @@ GLvoid DrawScene( GLvoid )
 				else
 					drawZombie( &server_data.Players[i], &Ani[i] );
 
-				glPushMatrix();
-				glColor3f( 0, 255, 0 );
-				glTranslatef( server_data.Players[i].x, server_data.Players[i].y + (player_collision[i][3].size / 2), server_data.Players[i].z );
-				glutWireCube( (double)player_collision[i][3].size );
-				glTranslatef( 0, player_collision[i][2].size, 0 );
-				glutWireCube( (double)player_collision[i][2].size );
-				glTranslatef( 0, player_collision[i][1].size, 0 );
-				glutWireCube( (double)player_collision[i][1].size );
-				glTranslatef( 0, player_collision[i][0].size, 0 );
-				glutWireCube( (double)player_collision[i][0].size );
-				glPopMatrix();
+				//충돌체크박스
+				//glPushMatrix();
+				//glColor3f( 0, 255, 0 );
+				//glTranslatef( server_data.Players[i].x, server_data.Players[i].y + (player_collision[i][3].size / 2), server_data.Players[i].z );
+				//glutWireCube( (double)player_collision[i][3].size );
+				//glTranslatef( 0, player_collision[i][2].size, 0 );
+				//glutWireCube( (double)player_collision[i][2].size );
+				//glTranslatef( 0, player_collision[i][1].size, 0 );
+				//glutWireCube( (double)player_collision[i][1].size );
+				//glTranslatef( 0, player_collision[i][0].size, 0 );
+				//glutWireCube( (double)player_collision[i][0].size );
+				//glPopMatrix();
 				//printf("%d, size : %d\n",player_collision[i][2].size);
 			}
 		}
 
-		drawHud( width, height, player_socket );//HUD 그리는 부분 내부에 push pop 알아서 함
+		drawHud( width, height, player_socket, server_data.gr.round_time );//HUD 그리는 부분 내부에 push pop 알아서 함
 	}
 	else
 	{
@@ -247,13 +247,8 @@ GLvoid DrawScene( GLvoid )
 		glEnable( GL_DEPTH_TEST );			// 가려진 면 제거
 		glEnable( GL_CULL_FACE );				// 후면 제거
 
-
-		//맵 그리기
-	/*	for ( int i = 0; i < BOX_COUNT; i++ )
-			&box[i]*/
-
-			DrawMap( );
-			DrawBox( box );
+		DrawMap();
+		DrawBox( box );
 
 		//다른 플레이어 그리기
 		for ( int i = 0; i < MAX_Client; i++ )
@@ -289,9 +284,14 @@ GLvoid DrawScene( GLvoid )
 
 	}
 
+	if ( Keybuffer[VK_TAB] )
+	{
+		draw_score( width, height, server_data );
+		//printf("tab in DrawScene\n");
+	}
+
 	glutSwapBuffers(); //화면에 출력하기
 }//end of drawScene
-
 
 GLvoid Reshape( int w, int h )
 {
@@ -369,6 +369,7 @@ void Keyboard( unsigned char key, int x, int y )
 			RotateCam = true;
 
 			GameStart = true;
+			player_socket.Game_Play = true;
 			player_socket.live = true;
 			strcpy( player_socket.nickName, nickName );
 			reset_character();
@@ -427,8 +428,12 @@ void Keyboard( unsigned char key, int x, int y )
 			player_client.Viewy = 0;
 			player_client.Viewz = 0;
 			player_socket.live = false;
+			player_socket.Game_Play = false;
 		}
 		else exit( 0 );
+		break;
+	case VK_TAB://TAB키
+		//printf("tab\n");
 		break;
 	}
 }//end of Keyboard
@@ -468,6 +473,27 @@ void TimerFunction( int value )
 			else {
 				player_socket.RespawnTime -= 1;
 			}
+		}
+
+		if ( server_data.gr.time_wait <= 0 ) {
+			// 게임 시작전 카운트다운 10초후 초기 위치로 이동..!
+			reset_character();
+		}
+		if ( server_data.gr.exit_Round == true ) {
+			// 서버에서 게임을 종료하면 모두 대기방으로 이동시킨다.
+			GameStart = false;
+			player_socket.Game_Play = false;
+			player_socket.x = 0;
+			player_socket.y = -1000;
+			player_socket.z = 0;
+			player_client.Camx = 0;
+			player_client.Camy = 0;
+			player_client.Camz = 0;
+			player_client.Viewx = 0;
+			player_client.Viewy = 0;
+			player_client.Viewz = 0;
+			player_socket.live = false;
+			player_socket.Game_Play = false;
 		}
 		glutTimerFunc( 1024, TimerFunction, 2 ); // 패킷 전송을 확인하기 위하여
 		break;
@@ -554,6 +580,13 @@ void TimerFunction( int value )
 		glutTimerFunc( Time, TimerFunction, 1 );
 
 		break;
+
+		//case 3:
+		//	if ( server_data.gr.time_wait <= 0 ) {
+		//		reset_character();
+		//	}
+		//	glutTimerFunc(100, TimerFunction, 3);
+		//	break;
 	}
 
 
@@ -652,7 +685,7 @@ void BulletCollision( Box box[] )
 		if ( Bullet( &box[i] ) == 1.0 )
 		{
 			//printf( "상자충돌!\n" );
-			Dist = sqrt( pow( player_socket.x - box[i].x, 2.0 ) + pow( player_socket.y - box[i].y, 2.0 ) + pow( player_socket.z - box[i].z, 2.0 ) );
+			Dist = sqrt( pow( player_socket.x - box[i].x, 2.0f ) + pow( player_socket.y - box[i].y, 2.0f ) + pow( player_socket.z - box[i].z, 2.0f ) );
 			if ( BoxShortest > Dist )
 			{
 				BoxShortest = Dist;
@@ -667,7 +700,7 @@ void BulletCollision( Box box[] )
 			if ( ((Bullet( &player_collision[i][0] ) == 1.0) || (Bullet( &player_collision[i][1] ) == 1.0)) || ((Bullet( &player_collision[i][2] ) == 1.0) || (Bullet( &player_collision[i][3] ) == 1.0)) )
 			{
 				//printf( "플레이어 %d 충돌!\n", i );
-				Dist = sqrt( pow( player_socket.x - server_data.Players[i].x, 2.0 ) + pow( player_socket.y - server_data.Players[i].y, 2.0 ) + pow( player_socket.z - server_data.Players[i].z, 2.0 ) );
+				Dist = sqrt( pow( player_socket.x - server_data.Players[i].x, 2.0f ) + pow( player_socket.y - server_data.Players[i].y, 2.0f ) + pow( player_socket.z - server_data.Players[i].z, 2.0f ) );
 				if ( CharShortest > Dist )
 				{
 					CharShortest = Dist;
@@ -679,7 +712,7 @@ void BulletCollision( Box box[] )
 	if ( CharShortest < BoxShortest )
 	{
 		//printf( "플레이어 충돌!\n" );/////////////////////////////////////플레이어가 총알에 맞은게 확정일때//////////////////////////
-		if ( player_socket.live == true ) {
+		if ( player_socket.live == true && server_data.gr.round_start == true ) {
 			server_data.Players[Cshort].live = false;
 			player_socket.AttackedPlayer = Cshort;
 		}
@@ -699,10 +732,10 @@ void reset_character() {
 	{
 		player_socket.x = 3800;
 		player_socket.y = 0;
-		player_socket.z = 0;
+		player_socket.z = client_data.client_imei * 300;
 		player_client.Viewx = -3800;
 		player_client.Viewy = 0;
-		player_client.Viewz = 0;
+		player_client.Viewz = client_data.client_imei * 300;
 		player_socket.camxrotate = -276.360107;
 		player_socket.camyrotate = -92.9999992;
 	}
@@ -710,10 +743,10 @@ void reset_character() {
 	{
 		player_socket.x = -3800;
 		player_socket.y = 0;
-		player_socket.z = 0;
+		player_socket.z = client_data.client_imei * 300;
 		player_client.Viewx = 3800;
 		player_client.Viewy = 0;
-		player_client.Viewz = 0;
+		player_client.Viewz = client_data.client_imei * 300;
 		player_socket.camxrotate = -96.400032;
 		player_socket.camyrotate = -89.919991;
 	}
@@ -731,14 +764,14 @@ void WallCollision( Player_Socket *player_socket )
 		player_socket->z = 3950;
 }
 
-void SetBoxState(){
-	for ( int i = 0; i < 25; i+=2 ) {
+void SetBoxState() {
+	for ( int i = 0; i < 25; i += 2 ) {
 		Mapping_Box( box[i], 3, 0, i, 0 ); // x, y, z, image
 	}
 	int j = 1;
 	for ( int i = 25; i < 38; ++i ) {
 		Mapping_Box( box[i], 23, 0, j, 0 ); // x, y, z, image
-		j+=2;
+		j += 2;
 	}
 
 	//------------------------------------------------------------------
@@ -809,4 +842,127 @@ void SetBoxState(){
 	box[21].size = 400;
 	box[21].image = 2;
 	//------------------------------------------------------------------
+}
+
+void draw_score( int w, int h, Server_Player server_data )
+{
+	int len;
+
+	glPushMatrix();//draw_score 시작
+
+	glViewport( 0, 0, w, h );
+
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+	glOrtho( 0, w, h, 0, -1, 1 );
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
+
+	glDisable( GL_LIGHTING );      // 조명 활성화
+	glDisable( GL_COLOR_MATERIAL );
+	glDisable( GL_NORMALIZE );
+
+
+	char buf[MAX_PATH];
+	glPushMatrix();//남은시간 표시
+	glColor3f( 1, 1, 1 );//파란색글씨
+	glTranslatef( 0, 200, 0 );//글씨위치
+	glRasterPos2f( 0.0, 0.0 );
+
+	//-------------------------------------------------------------------------
+	//팀 이름 표시
+	glPushMatrix();
+	for ( int j = 0; j < 16; j++ )//A팀
+		buf[j] = '\0';
+	glTranslatef( 0, 0, 0 );
+	glRasterPos2f( 100.0, 0.0 );
+	sprintf( buf, "A Team" );
+	len = (int)strlen( buf );
+	for ( int i = 0; i < len; i++ )
+		glutBitmapCharacter( GLUT_BITMAP_9_BY_15, buf[i] );
+	glPopMatrix();
+
+	glPushMatrix();
+	for ( int j = 0; j < 16; j++ )//B팀
+		buf[j] = '\0';
+	glTranslatef( w / 2 + 30, 0, 0 );
+	glRasterPos2f( 0.0, 0.0 );
+	sprintf( buf, "B Team" );
+	len = (int)strlen( buf );
+	for ( int i = 0; i < len; i++ )
+		glutBitmapCharacter( GLUT_BITMAP_9_BY_15, buf[i] );
+	glPopMatrix();
+	//-------------------------------------------------------------------------
+
+	//-------------------------------------------------------------------------
+	//Team A(bool값 false)
+	glPushMatrix();//Team A 표시 시작
+	glTranslatef( 0, 30, 0 );
+	for ( int i = 0; i < MAX_Client / 2; i++ )
+	{
+		glTranslatef( 0, 30, 0 );
+		glPushMatrix();
+		for ( int j = 0; j < 16; j++ )
+			buf[j] = '\0';
+		glTranslatef( 100, 0, 0 );
+		glRasterPos2f( 0.0, 0.0 );
+		sprintf( buf, "%s = ", server_data.Players[i * 2].nickName );
+		len = (int)strlen( buf );
+		for ( int i = 0; i < len; i++ )
+			glutBitmapCharacter( GLUT_BITMAP_9_BY_15, buf[i] );
+
+
+		for ( int j = 0; j < 16; j++ )
+			buf[j] = '\0';
+		glTranslatef( 140, 0, 0 );
+		glRasterPos2f( 0.0, 0.0 );
+		sprintf( buf, "%d : %d", server_data.Players[i * 2].kill, server_data.Players[i * 2].death );
+		len = (int)strlen( buf );
+		for ( int i = 0; i < len; i++ )
+			glutBitmapCharacter( GLUT_BITMAP_9_BY_15, buf[i] );
+		glPopMatrix();
+
+		//printf("%d", i);
+	}
+	glPopMatrix();//Team A 표시 종료
+	//-------------------------------------------------------------------------
+
+	//-------------------------------------------------------------------------
+	//Team B(bool값 true)
+	glPushMatrix();//Team B 표시 시작
+	glTranslatef( w / 2 - 70, 30, 0 );
+	for ( int i = 0; i < MAX_Client / 2; i++ )
+	{
+		glTranslatef( 0, 30, 0 );
+		glPushMatrix();
+		for ( int j = 0; j < 16; j++ )
+			buf[j] = '\0';
+		glTranslatef( 100, 0, 0 );
+		glRasterPos2f( 0.0, 0.0 );
+		sprintf( buf, "%s = ", server_data.Players[(i * 2) + 1].nickName );
+		len = (int)strlen( buf );
+		for ( int i = 0; i < len; i++ )
+			glutBitmapCharacter( GLUT_BITMAP_9_BY_15, buf[i] );
+
+
+		for ( int j = 0; j < 16; j++ )
+			buf[j] = '\0';
+		glTranslatef( 140, 0, 0 );
+		glRasterPos2f( 0.0, 0.0 );
+		sprintf( buf, "%d : %d", server_data.Players[(i * 2) + 1].kill, server_data.Players[(i * 2) + 1].death );
+		len = (int)strlen( buf );
+		for ( int i = 0; i < len; i++ )
+			glutBitmapCharacter( GLUT_BITMAP_9_BY_15, buf[i] );
+		glPopMatrix();
+
+		//printf("%d", i);
+	}
+	glPopMatrix();//Team B 표시 종료
+	//-------------------------------------------------------------------------
+
+
+	glPopMatrix();//남은시간 표시 종료
+
+
+	glPopMatrix();//draw_score 종료
 }

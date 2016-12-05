@@ -192,7 +192,7 @@ void drawGun( Player_Socket *player_socket, bool &gunfire )
 	glTranslatef( 0, 40, 0 );
 	glRotatef( -player_socket->camyrotate - 90, 1, 0, 0 );
 	//glRotatef(-60, 0, 1, 0);
-	glTranslatef( -25, 0, 120 );
+	glTranslatef( -25, 0, 110 );
 	glScalef( 0.15, 0.2, 1.0 );
 	glutSolidCube( 120 );//¸öÃ¼
 
@@ -272,7 +272,7 @@ void drawGun( Player_Socket *player_socket, bool &gunfire )
 
 	if ( gunfire )
 	{
-		glPushMatrix();//°¡´ÆÁÂ2
+		glPushMatrix();//ÃÑ±¸È­¿°
 		glTranslatef( 0, 10, 75 );
 
 		glPushMatrix();

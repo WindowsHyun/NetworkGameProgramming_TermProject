@@ -13,17 +13,25 @@
 bool client[MAX_Client] = { false }; // 클라이언트가 들어오는 대로 처리한다.
 bool init_client[MAX_Client] = { false }; // 클라 처음 시작하는지 안하는지를 판단한다.
 char buf[MAX_PATH];
+int aTeam = 0, bTeam = 0;
+int defaultRoundTime = 60;
 
 // 윈도우 프로시저
 LRESULT CALLBACK WndProc( HWND, UINT, WPARAM, LPARAM );
 BOOL CALLBACK DlgProc( HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam );
+void CALLBACK TimerProc( HWND, UINT, UINT, DWORD ); //함수 선언
 
-// 오류 출력 함수
+
 void DisplayText( HWND hDlg, char *fmt, ... );
+void DisplayEditText( HWND hDlg, char *fmt, ... );
+void clrUser( int ); // 유저가 나가거나 강퇴시 정보를 지운다.
+void Kill_Death( int select ); // kd초기화 or 계산
 
 SOCKET sock; // 소켓
-HWND shareHwnd, hList, hTextBox;
+HWND shareHwnd, hList, hTextBox[3];
+HFONT hFont[3];
 HWND hPlayer[8], hPlayerOff[8];
+HWND Time_Button[6];
 SYSTEM_INFO SystemInfo;
 
 Server_Player server_data;
@@ -31,12 +39,12 @@ Server_Player server_data;
 DWORD WINAPI ProcessClient( LPVOID arg ); // 클라 접속을 위한 스레드
 unsigned int __stdcall CompletionThread( LPVOID pComPort );
 
-void clrUser( int ); // 유저가 나가거나 강퇴시 정보를 지운다.
-
 
 int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow ) {
 	// 소켓 통신 스레드 생성
 	CreateThread( NULL, 0, ProcessClient, NULL, 0, NULL );
+
+	SetTimer( shareHwnd, 1, 1024, TimerProc );
 
 	// 대화상자 생성
 	DialogBox( hInstance, MAKEINTRESOURCE( IDD_DIALOG1 ), NULL, DlgProc );
@@ -49,13 +57,76 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	return 0;
 }
 
+void CALLBACK TimerProc( HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime ) {   //함수 정의
+	HDC hdc;
+	hdc = GetDC( hWnd );
+	if ( server_data.gr.round_wait == true ) {
+		if ( server_data.gr.time_wait <= 0 ) {
+			// wait 가 모두 끝났을경우
+			server_data.gr.round_start = true;
+			server_data.gr.round_wait = false;
+			server_data.gr.time_wait = Game_WaitTime;
+			server_data.gr.round_time = defaultRoundTime;
+		}
+		server_data.gr.time_wait -= 1;
+		DisplayEditText( hTextBox[2], "게임시작 까지 = %d : %d", server_data.gr.time_wait / 60, server_data.gr.time_wait % 60 );
+	}
+
+	if ( server_data.gr.round_start == true ) {
+		if ( server_data.gr.round_time <= 0 ) {
+			// 라운드가 끝났을경우 다음 라운드로 넘겨준다..!
+			server_data.gr.round_start = false;
+			server_data.gr.GameRound += 1;
+			server_data.gr.round_wait = false;
+			server_data.gr.time_wait = Game_WaitTime;
+			server_data.gr.round_time = defaultRoundTime;
+			DisplayEditText( hTextBox[0], "Round : %d", server_data.gr.GameRound );
+			Kill_Death( 0 );
+			Kill_Death( 1 );
+		}
+		server_data.gr.round_time -= 1;
+		if ( server_data.gr.round_time % 60 < 10 ) {
+			DisplayEditText( hTextBox[2], "남은시간 = %d : 0%d", server_data.gr.round_time / 60, server_data.gr.round_time % 60 );
+		}
+		else {
+			DisplayEditText( hTextBox[2], "남은시간 = %d : %d", server_data.gr.round_time / 60, server_data.gr.round_time % 60 );
+		}
+	}
+	else {
+		// 라운드가 false일경우 1초마다 체크를 해준다.
+		int user = 0;
+		for ( int i = 0; i < MAX_Client; ++i ) {
+			if ( server_data.player[i].Game_Play == true )
+				user++;
+		}
+		if ( user >= 2 )
+			server_data.gr.round_wait = true; // 참여자가 2명 이상이면 time_wait를 true로 하여 전체 대기를 진행한다.
+	}
+	ReleaseDC( hWnd, hdc );
+}
+
+
 BOOL CALLBACK DlgProc( HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam ) {
 	shareHwnd = hDlg;
 	switch ( uMsg ) {
 	case WM_INITDIALOG:
 		//hProgress = GetDlgItem( hDlg, IDC_PROGRESS1 );
+		hFont[0] = CreateFont( 20, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 3, 2, 1, VARIABLE_PITCH | FF_ROMAN, "돋음" );
+		hFont[1] = CreateFont( 30, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 3, 2, 1, VARIABLE_PITCH | FF_ROMAN, "돋음" );
+		hFont[2] = CreateFont( 35, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 3, 2, 1, VARIABLE_PITCH | FF_ROMAN, "돋음" );
+
 		hList = GetDlgItem( hDlg, IDC_LIST1 );
-		hTextBox = GetDlgItem( hDlg, IDC_EDIT1 );
+		hTextBox[0] = GetDlgItem( hDlg, IDC_EDIT1 );
+		hTextBox[1] = GetDlgItem( hDlg, IDC_EDIT2 );
+		hTextBox[2] = GetDlgItem( hDlg, IDC_EDIT3 );
+
+		Time_Button[0] = GetDlgItem( hDlg, IDC_BUTTON18 ); // 1분
+		Time_Button[1] = GetDlgItem( hDlg, IDC_BUTTON19 ); // 2분
+		Time_Button[2] = GetDlgItem( hDlg, IDC_BUTTON20 ); // 3분
+		Time_Button[3] = GetDlgItem( hDlg, IDC_BUTTON21 ); // 4분
+		Time_Button[4] = GetDlgItem( hDlg, IDC_BUTTON22 ); // 5분
+		Time_Button[5] = GetDlgItem( hDlg, IDC_BUTTON23 ); // Next Round
+
 		hPlayer[0] = GetDlgItem( hDlg, IDC_BUTTON2 );
 		hPlayer[1] = GetDlgItem( hDlg, IDC_BUTTON4 );
 		hPlayer[2] = GetDlgItem( hDlg, IDC_BUTTON6 );
@@ -77,7 +148,13 @@ BOOL CALLBACK DlgProc( HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam ) {
 		//SendMessage( hList, LB_ADDSTRING, 0, (LPARAM)"추가한다." );
 
 		// 줄구분 할때는 : \r\n
-		SendMessage( hTextBox, EM_REPLACESEL, 0, (LPARAM)"as\r\nas" );
+		SendMessage( hTextBox[0], WM_SETFONT, (WPARAM)hFont[0], (LPARAM)TRUE );
+		SendMessage( hTextBox[1], WM_SETFONT, (WPARAM)hFont[1], (LPARAM)TRUE );
+		SendMessage( hTextBox[2], WM_SETFONT, (WPARAM)hFont[2], (LPARAM)TRUE );
+		DisplayEditText( hTextBox[0], "Round : %d", server_data.gr.GameRound );
+		DisplayEditText( hTextBox[1], "%d vs %d", aTeam, bTeam );
+		DisplayEditText( hTextBox[2], "남은시간 = %d : %d", server_data.gr.round_time / 60, server_data.gr.round_time % 60 );
+
 		DisplayText( hList, "%d Thread Created..!", SystemInfo.dwNumberOfProcessors * 2 );
 		SendMessage( hList, LB_ADDSTRING, 0, (LPARAM)"Server is Ready..!" );
 
@@ -121,6 +198,50 @@ BOOL CALLBACK DlgProc( HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam ) {
 		case IDC_BUTTON17:
 			client[7] = false;
 			return TRUE;
+
+		case  IDC_BUTTON18:
+			server_data.gr.exit_Round = false;
+			server_data.gr.round_time = 60;
+			defaultRoundTime = 60;
+			return TRUE;
+		case IDC_BUTTON19:
+			server_data.gr.exit_Round = false;
+			server_data.gr.round_time = 120;
+			defaultRoundTime = 120;
+			return TRUE;
+		case IDC_BUTTON20:
+			server_data.gr.exit_Round = false;
+			server_data.gr.round_time = 180;
+			defaultRoundTime = 180;
+			return TRUE;
+		case IDC_BUTTON21:
+			server_data.gr.exit_Round = false;
+			server_data.gr.round_time = 240;
+			defaultRoundTime = 240;
+			return TRUE;
+		case IDC_BUTTON22:
+			server_data.gr.exit_Round = false;
+			server_data.gr.round_start = false;
+			server_data.gr.GameRound += 1;
+			server_data.gr.round_wait = false;
+			server_data.gr.time_wait = Game_WaitTime;
+			server_data.gr.round_time = defaultRoundTime;
+			Kill_Death( 1 );
+			return TRUE;
+		case IDC_BUTTON23:
+			// 라운드 강제 종료
+			server_data.gr.GameRound = 1;
+			server_data.gr.round_start = false;
+			server_data.gr.round_wait = false;
+			server_data.gr.exit_Round = true;
+			server_data.gr.time_wait = Game_WaitTime;
+			server_data.gr.round_time = defaultRoundTime;
+			Kill_Death( 0 );
+			Kill_Death( 1 );
+			DisplayEditText( hTextBox[0], "Round : %d", server_data.gr.GameRound );
+			DisplayEditText( hTextBox[2], "라운드 종료..!" );
+			return TRUE;
+
 
 		case IDCANCEL:
 			EndDialog( hDlg, IDCANCEL );
@@ -271,6 +392,7 @@ unsigned int __stdcall CompletionThread( LPVOID pComPort ) {
 	DWORD flags;
 	Player_Socket temp;
 	int sendBytes = 0, player_hp, Attacked_Player;
+	int player_kill, player_death;
 	bool player_live;
 
 	//WSASend( PerHandleData->hClntSock, &(PerIoData->wsaBuf), 1, NULL, 0, NULL, NULL );
@@ -309,6 +431,8 @@ unsigned int __stdcall CompletionThread( LPVOID pComPort ) {
 
 			player_hp = server_data.player[PerHandleData->client_imei].hp;
 			player_live = server_data.player[PerHandleData->client_imei].live;
+			player_kill = server_data.player[PerHandleData->client_imei].kill;
+			player_death = server_data.player[PerHandleData->client_imei].death;
 
 			temp = (Player_Socket&)PerIoData->buffer;
 
@@ -322,8 +446,7 @@ unsigned int __stdcall CompletionThread( LPVOID pComPort ) {
 
 				server_data.player[PerHandleData->client_imei].live = true;
 				server_data.player[PerHandleData->client_imei].team = (bool)(PerHandleData->client_imei % 2);
-				//DisplayText( hList, "nickName : %s, live : %d", server_data.player[PerHandleData->client_imei].nickName, server_data.player[PerHandleData->client_imei].live );
-				//DisplayText( hList, "x : %f, y : %f, nickName : %s", server_data.player[PerHandleData->client_imei].x, server_data.player[PerHandleData->client_imei].y, server_data.player[PerHandleData->client_imei].nickName );
+
 
 				if ( init_client[PerHandleData->client_imei] == false ) {
 					server_data.player[PerHandleData->client_imei].hp = 100;
@@ -332,6 +455,8 @@ unsigned int __stdcall CompletionThread( LPVOID pComPort ) {
 				else {
 					server_data.player[PerHandleData->client_imei].hp = player_hp;
 					server_data.player[PerHandleData->client_imei].live = player_live;
+					server_data.player[PerHandleData->client_imei].kill = player_kill;
+					server_data.player[PerHandleData->client_imei].death = player_death;
 				}
 
 				if ( server_data.player[PerHandleData->client_imei].RespawnTime == Respawn_Complete ) {
@@ -344,12 +469,14 @@ unsigned int __stdcall CompletionThread( LPVOID pComPort ) {
 					Attacked_Player = server_data.player[PerHandleData->client_imei].AttackedPlayer;
 					server_data.player[Attacked_Player].hp -= 40;
 					if ( server_data.player[Attacked_Player].hp <= 0 ) {
+						server_data.player[PerHandleData->client_imei].kill += 1;
+						server_data.player[Attacked_Player].death += 1;
 						server_data.player[Attacked_Player].hp = 0;
 						server_data.player[Attacked_Player].RespawnTime = 10;
 						server_data.player[Attacked_Player].live = false;
+						Kill_Death( 0 );
 					}
 				}
-
 
 
 				if ( init_client[PerHandleData->client_imei] == false ) {
@@ -396,6 +523,16 @@ void DisplayText( HWND hDlg, char *fmt, ... ) {
 	SendMessage( hDlg, LB_ADDSTRING, 0, (LPARAM)contentBuf );
 }
 
+void DisplayEditText( HWND hDlg, char *fmt, ... ) {
+	va_list arg;
+	va_start( arg, fmt );
+
+	char contentBuf[MAX_PATH]; //sprintf 등을 사용할때 쓰자
+	vsprintf( contentBuf, fmt, arg );
+
+	SendMessage( hDlg, WM_SETTEXT, 0, (LPARAM)contentBuf );
+}
+
 void clrUser( int client_imei ) {
 	server_data.player[client_imei].camxrotate = -1000.0f;
 	server_data.player[client_imei].camyrotate = -1000.0f;
@@ -406,7 +543,46 @@ void clrUser( int client_imei ) {
 	server_data.player[client_imei].AttackedPlayer = Not_Attacked;
 	server_data.player[client_imei].RespawnTime = Not_Respwan;
 	server_data.player[client_imei].live = false;
+	server_data.player[client_imei].Game_Play = false;
 	server_data.player[client_imei].team = false;
 	server_data.player[client_imei].character_down_state = 0;
 	strcpy( server_data.player[client_imei].nickName, "" );
+}
+
+void Kill_Death( int select ) {
+	switch ( select )
+	{
+	case 0:
+		// A팀 계산
+		aTeam = 0;
+		for ( int i = 0; i < MAX_Client / 2; ++i ) {
+			aTeam += server_data.player[i * 2].kill;
+		}
+		// B팀 계산
+		bTeam = 0;
+		for ( int i = 0; i < MAX_Client / 2; ++i ) {
+			bTeam += server_data.player[(i * 2) + 1].kill;
+		}
+		DisplayEditText( hTextBox[1], "%d vs %d", aTeam, bTeam );
+		if ( aTeam > bTeam ) {
+			server_data.gr.game_result = 0;
+		}
+		else {
+			server_data.gr.game_result = 1;
+		}
+		break;
+
+	case 1:
+		// kd 초기화
+		for ( int i = 0; i < MAX_Client; ++i ) {
+			server_data.player[i].kill = 0;
+			server_data.player[i].death = 0;
+		}
+		Kill_Death( 0 );
+		break;
+
+	default:
+		break;
+	}
+
 }

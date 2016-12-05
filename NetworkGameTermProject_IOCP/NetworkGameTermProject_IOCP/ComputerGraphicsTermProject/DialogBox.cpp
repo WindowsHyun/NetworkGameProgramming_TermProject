@@ -3,7 +3,7 @@
 HWND hwndOwner;
 RECT rc, rcDlg, rcOwner;
 HWND ipAddr, CharName;
-char ipAddres[MAX_PATH] = "192.168.0.3";
+char ipAddres[MAX_PATH] = "127.0.0.1";
 char nickName[16] = "Nothing";
 bool GamePlayWait = true;
 

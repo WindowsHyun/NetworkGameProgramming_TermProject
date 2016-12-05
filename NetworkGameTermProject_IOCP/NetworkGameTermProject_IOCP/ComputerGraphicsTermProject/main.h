@@ -2,7 +2,6 @@
 #define __MAIN_LOAD_H
 
 #pragma comment(lib, "ws2_32")
-#pragma comment(lib, "DirectX/d3dx9.lib")
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
@@ -14,7 +13,6 @@
 #include <windows.h>
 #include <math.h>
 #include "resource.h" // 리소스 헤더 추가
-#include "DirectX\d3dx9mesh.h"
 
 #include "OpenGL_Aux/GLAUX.H"
 // OpenGL Aux 사용으로 인한 모듈 추가
@@ -55,11 +53,13 @@
 //박스갯수
 #define BOX_COUNT 38
 
-// 먼저 벡터를 표현하는 구조체를 정의합니다. 
+
+//3차원 벡터 구조체
 typedef struct vector3 {
 	double x, y, z;
 }vector3;
 
+//2차원 벡터 구조체
 typedef struct vector2 {
 	double x, y;
 	//생성자
@@ -95,6 +95,7 @@ typedef struct vector2 {
 	}
 }vector2;
 
+//장애물 박스 정보 구조체
 typedef struct Box
 {
 	//opengl
@@ -103,6 +104,8 @@ typedef struct Box
 	int image;
 }Box;
 
+//플레이어 애니메이션 구조체
+//어떤 자세인지, 팔다리 등의 회전상태값을 저장
 typedef struct Player_Animation
 {
 	int character_up_state = CHARACTER_PISTOL, legtimer = 0;//up_state는 상체, down_state는 하체
@@ -111,13 +114,7 @@ typedef struct Player_Animation
 	bool sight = false, jump = false, crouch = false;//정조준, 점프상태, 앉기상태
 }Player_Animation;
 
-typedef struct Bullet
-{
-	float x, y, z;
-	float fx, fy, fz;
-	Bullet * next;
-}Bullet;
-
+//외부로 전송하기위한 플레이어 정보를 담은 구조체
 typedef struct Player_Socket
 {
 	float x = -1000, y = -1000, z = -1000;
@@ -126,18 +123,35 @@ typedef struct Player_Socket
 	int AttackedPlayer = Not_Attacked; // 공격 당한 플레이어 번호
 	int RespawnTime = Not_Respwan;
 	bool live = true;
+	bool Game_Play = false;
 	bool team;
 	char nickName[16];
 	int character_down_state;
+	int kill = 0, death = 0;//스코어정보저장
 }Player_Socket;
 
+typedef struct Game_Round
+{
+	int GameRound;
+	int round_time;
+	bool round_start = false;
+	int time_wait;
+	bool round_wait = false; // 전체 게임 시작전 bool
+	bool exit_Round;
+	int game_result;
+}Game_Round;
+
+//서버로 데이터를 전송및 수신할때 사용하는 구조체
 typedef struct Server_Player
 {
 	Player_Socket Players[MAX_Client];
-}Player_Other;
-
+	Game_Round gr;
+}Server_Player;
+//공용 전역변수 서버데이터
+//다른cpp에서 중복 선언 안되도록 extern으로 선언
 extern Server_Player server_data;
 
+//클라이언트 에서만 사용하는 캐릭터 정보 구조체
 typedef struct Player
 {
 	float Viewx, Viewy, Viewz;
@@ -170,7 +184,8 @@ extern ClientData client_data;
 void WallCollision( Player_Socket *player_socket );
 
 //UI 그리기
-void drawHud( int w, int h, Player_Socket player ); // 윈도우 크기를 받아오게 한다.
+void drawHud(int w, int h, Player_Socket player, int time);// 윈도우 크기를 받아오게 한다.
+void draw_score(int w, int h, Server_Player server_data);
 
 //무기그리기 + 총구화염
 void drawGun( Player_Socket *player_socket, bool &gunfire );
@@ -232,6 +247,7 @@ void zombie_body_Texture( GLuint[] );
 void zombie_arm_Texture( GLuint[], GLuint[] );
 void zombie_leg_Texture( GLuint[], GLuint[] );
 
+//캐릭터 그리기
 void drawCharacter( Player_Socket *player_socket, Player_Animation *Ani, bool &gunfire );
 void drawZombie( Player_Socket *player_socket, Player_Animation *Ani );
 
@@ -251,9 +267,6 @@ extern float fps;
 extern int sendPacket;
 void update_FPS(); // FPS를 지속적으로 측정한다
 
-//박스의 d3dvertex3 형식 전환
-void SetBoxInfo( Box *box );
-
 //총알 충돌체크 관련 함수
 double ccw( vector2 a, vector2 b );
 double ccw( vector2 p, vector2 a, vector2 b );
@@ -263,10 +276,9 @@ bool inBoundingRectangle( vector2 p, vector2 a, vector2 b );
 bool lineIntersection( vector2 a, vector2 b, vector2 c, vector2 d, vector2& x );
 bool segmentIntersection( vector2 a, vector2 b, vector2 c, vector2 d, vector2& p );
 bool sementIntersects( vector2 a, vector2 b, vector2 c, vector2 d );
-
 void BulletCollision( Box box[] );
 double Bullet( Box *box );
 double PlaneCollision( Box *box, const vector3 *Pos, const vector3 *Dir );
 
-//legacy_stdio_definitions.lib (링커 -> 입력)
+//VS2015버전에서 오류날 시 legacy_stdio_definitions.lib  추가 (프로젝트 옵션 -> 링커 -> 입력)
 #endif

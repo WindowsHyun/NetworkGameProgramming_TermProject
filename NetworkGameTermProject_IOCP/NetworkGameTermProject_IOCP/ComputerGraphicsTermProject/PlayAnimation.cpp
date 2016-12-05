@@ -46,7 +46,7 @@ void PlayAnimation(Player_Animation &Ani, const int character_down_state)
 		break;
 	case 2://ÁÂ¿ìÀÌµ¿
 		break;
-	case 3://¾É±â
+	case 3://Á¡ÇÁ
 		Ani.left_leg_x = -75;
 		Ani.left_leg_y = 0;
 		Ani.left_leg_z = 40;

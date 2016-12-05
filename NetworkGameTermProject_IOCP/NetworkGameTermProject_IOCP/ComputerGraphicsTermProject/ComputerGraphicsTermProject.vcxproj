@@ -97,7 +97,6 @@
     <ClCompile Include="LoadZombieTexture.cpp" />
     <ClCompile Include="mmain.cpp" />
     <ClCompile Include="PlayAnimation.cpp" />
-    <ClCompile Include="SetBoxInfo.cpp" />
     <ClCompile Include="UI_Draw.cpp" />
     <ClCompile Include="Win_Sock.cpp" />
   </ItemGroup>
